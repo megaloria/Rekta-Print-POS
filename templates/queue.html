@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RektaPrint – Print Queue</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --surface2: #222222;
+    --border: #2e2e2e;
+    --text: #f0ebe0;
+    --muted: #888;
+    --accent: #e84f2b;
+    --blue: #2b6be8;
+    --green: #1faa5e;
+    --yellow: #f5a623;
+    --mono: 'DM Mono', monospace;
+    --sans: 'Syne', sans-serif;
+  }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.8rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  .logo { font-size: 1.3rem; font-weight: 800; letter-spacing: -0.04em; display: flex; align-items: center; gap: 0.5rem; }
+  .logo-dot { width: 10px; height: 10px; background: var(--accent); border-radius: 50%; }
+
+  .nav-links { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+
+  .nav-link {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    padding: 0.45rem 0.9rem;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    text-decoration: none;
+    transition: all 0.15s;
+  }
+
+  .nav-link:hover, .nav-link.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .stat-card { background: var(--surface); padding: 1.2rem 1.5rem; display: flex; flex-direction: column; gap: 0.3rem; }
+  .stat-label { font-family: var(--mono); font-size: 0.65rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
+  .stat-value { font-size: 2rem; font-weight: 800; letter-spacing: -0.04em; line-height: 1; }
+  .stat-value.orange { color: var(--accent); }
+  .stat-value.green  { color: var(--green); }
+  .stat-value.blue   { color: var(--blue); }
+  .stat-value.yellow { color: var(--yellow); }
+  .stat-sub { font-family: var(--mono); font-size: 0.7rem; color: var(--muted); }
+
+  .dashboard { display: grid; grid-template-columns: 1fr 360px; flex: 1; }
+
+  .queue-panel { border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+
+  .panel-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface);
+  }
+
+  .panel-title { font-size: 0.85rem; font-weight: 700; letter-spacing: -0.01em; display: flex; align-items: center; gap: 0.5rem; }
+
+  .count-pill {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    background: var(--accent);
+    color: white;
+    padding: 0.15rem 0.5rem;
+    border-radius: 10px;
+  }
+
+  .filter-tabs { display: flex; gap: 0.3rem; }
+
+  .tab {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    padding: 0.3rem 0.7rem;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.04em;
+  }
+
+  .tab.active, .tab:hover { background: var(--text); color: var(--bg); border-color: var(--text); }
+
+  .orders-wrap { overflow-y: auto; flex: 1; padding: 0.8rem; }
+
+  .order-card {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 0.7rem;
+    overflow: hidden;
+    background: var(--surface2);
+  }
+
+  .order-header {
+    padding: 0.8rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    gap: 0.8rem;
+  }
+
+  .order-header:hover { background: rgba(255,255,255,0.03); }
+
+  .order-header-left { display: flex; align-items: center; gap: 0.7rem; flex: 1; min-width: 0; }
+
+  .order-num { font-family: var(--mono); font-size: 0.75rem; color: var(--muted); flex-shrink: 0; }
+  .order-name { font-weight: 700; font-size: 0.9rem; }
+  .order-meta { font-family: var(--mono); font-size: 0.7rem; color: var(--muted); }
+
+  .order-chevron {
+    font-size: 0.7rem;
+    color: var(--muted);
+    transition: transform 0.2s;
+    flex-shrink: 0;
+  }
+
+  .order-card.expanded .order-chevron { transform: rotate(90deg); }
+
+  .order-files { display: none; border-top: 1px solid var(--border); }
+  .order-card.expanded .order-files { display: block; }
+
+  .order-file-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid var(--border);
+    gap: 0.7rem;
+  }
+
+  .order-file-row:last-child { border-bottom: none; }
+
+  .file-info-block { flex: 1; min-width: 0; }
+  .file-name { font-size: 0.82rem; font-weight: 600; word-break: break-all; }
+  .file-settings { font-family: var(--mono); font-size: 0.68rem; color: var(--muted); margin-top: 0.15rem; }
+
+  .badge {
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    padding: 0.18rem 0.45rem;
+    border-radius: 4px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    display: inline-block;
+  }
+
+  .badge.bw      { background: rgba(255,255,255,0.08); color: var(--muted); }
+  .badge.colored { background: rgba(43,107,232,0.2);   color: #6ba4ff; }
+
+  .status-badge {
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    padding: 0.18rem 0.5rem;
+    border-radius: 10px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+  }
+
+  .status-badge.waiting   { background: rgba(245,166,35,0.15);  color: var(--yellow); }
+  .status-badge.printing  { background: rgba(43,107,232,0.18);  color: #6ba4ff; }
+  .status-badge.done      { background: rgba(31,170,94,0.15);   color: var(--green); }
+  .status-badge.cancelled { background: rgba(255,80,80,0.12);   color: #ff7070; }
+  .status-badge.failed    { background: rgba(232,79,43,0.2);    color: var(--accent); }
+
+  .file-action-btns { display: flex; gap: 0.3rem; flex-shrink: 0; }
+
+  .btn-sm {
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    padding: 0.28rem 0.55rem;
+    border-radius: 5px;
+    border: 1px solid;
+    cursor: pointer;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    transition: all 0.15s;
+  }
+
+  .btn-print   { background: rgba(31,170,94,0.15);  border-color: rgba(31,170,94,0.4);  color: var(--green); }
+  .btn-cancel  { background: rgba(255,80,80,0.1);   border-color: rgba(255,80,80,0.3);  color: #ff7070; }
+  .btn-preview { background: rgba(43,107,232,0.12); border-color: rgba(43,107,232,0.35); color: #6ba4ff; }
+  .btn-print:hover   { background: var(--green); color: white; border-color: var(--green); }
+  .btn-cancel:hover  { background: var(--accent); color: white; border-color: var(--accent); }
+  .btn-preview:hover { background: var(--blue);  color: white; border-color: var(--blue); }
+
+  .btn-reprint { background: rgba(245,166,35,0.12); border-color: rgba(245,166,35,0.4); color: var(--yellow); }
+  .btn-reprint:hover { background: var(--yellow); color: #0f0f0f; border-color: var(--yellow); }
+
+  .btn-fail { background: rgba(232,79,43,0.1); border-color: rgba(232,79,43,0.3); color: var(--accent); }
+  .btn-fail:hover { background: var(--accent); color: white; border-color: var(--accent); }
+
+  .empty-state {
+    text-align: center;
+    padding: 2.5rem;
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+
+  .detail-panel { display: flex; flex-direction: column; background: var(--surface); }
+  .detail-header { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); background: var(--surface2); }
+  .detail-header h3 { font-size: 0.85rem; font-weight: 700; margin-bottom: 0.2rem; }
+  .detail-header p { font-family: var(--mono); font-size: 0.7rem; color: var(--muted); }
+  .detail-body { padding: 1.5rem; flex: 1; overflow-y: auto; }
+
+  .detail-empty {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    height: 100%; color: var(--muted); text-align: center; gap: 0.8rem;
+  }
+
+  .detail-empty-icon { font-size: 2.5rem; opacity: 0.3; }
+  .detail-empty p { font-family: var(--mono); font-size: 0.75rem; }
+
+  .detail-name { font-size: 1.3rem; font-weight: 800; letter-spacing: -0.03em; margin-bottom: 0.3rem; }
+  .detail-queue { font-family: var(--mono); font-size: 0.75rem; color: var(--accent); margin-bottom: 1.2rem; }
+
+  .toast {
+    position: fixed; bottom: 1.5rem; right: 1.5rem; background: var(--surface2);
+    border: 1px solid var(--border); border-left: 3px solid var(--green); border-radius: 8px;
+    padding: 0.8rem 1.2rem; font-size: 0.85rem; font-weight: 600; z-index: 200;
+    transform: translateX(120%); transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    max-width: 280px; box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+  }
+
+  .toast.show  { transform: translateX(0); }
+  .toast.error { border-left-color: var(--accent); }
+
+  @media (max-width: 900px) {
+    .stats-row  { grid-template-columns: repeat(2, 1fr); }
+    .dashboard  { grid-template-columns: 1fr; }
+    .detail-panel { border-right: none; border-top: 1px solid var(--border); }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><span class="logo-dot"></span>RektaPrint</div>
+  <div class="nav-links">
+    <a href="/admin" class="nav-link active">Print Queue</a>
+    <a href="/pos" class="nav-link">POS</a>
+    <a href="/dashboard" class="nav-link">Dashboard</a>
+    <a href="/inventory" class="nav-link">Inventory</a>
+    <a href="/expenses" class="nav-link">Expenses</a>
+    <a href="/wastage" class="nav-link">Wastage</a>
+    <a href="/settings" class="nav-link">Settings</a>
+    <a href="/logout" class="nav-link">Logout</a>
+  </div>
+</header>
+
+<div class="stats-row">
+  <div class="stat-card">
+    <div class="stat-label">Orders Waiting</div>
+    <div class="stat-value orange" id="statQueue">0</div>
+    <div class="stat-sub">need attention</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Files Printed Today</div>
+    <div class="stat-value green" id="statDone">0</div>
+    <div class="stat-sub">files completed</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Total Orders</div>
+    <div class="stat-value blue" id="statTotal">0</div>
+    <div class="stat-sub">all time</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Cancelled / Failed</div>
+    <div class="stat-value yellow" id="statCancelled">0</div>
+    <div class="stat-sub">files</div>
+  </div>
+</div>
+
+<div class="dashboard">
+  <div class="queue-panel">
+    <div class="panel-header">
+      <div class="panel-title">Print Queue <span class="count-pill" id="queueCount">0</span></div>
+      <div class="filter-tabs">
+        <button class="tab active" onclick="filterOrders('all', this)">All</button>
+        <button class="tab" onclick="filterOrders('waiting', this)">Waiting</button>
+        <button class="tab" onclick="filterOrders('done', this)">Done</button>
+        <button class="tab" onclick="filterOrders('failed', this)">Failed</button>
+        <button class="tab" onclick="filterOrders('cancelled', this)">Cancelled</button>
+      </div>
+    </div>
+
+    <div class="orders-wrap" id="ordersWrap"></div>
+  </div>
+
+  <div class="detail-panel">
+    <div class="detail-header"><h3>Order Details</h3><p>Click an order to inspect</p></div>
+    <div class="detail-body" id="detailBody">
+      <div class="detail-empty">
+        <div class="detail-empty-icon">🖨️</div>
+        <p>No order selected.<br>Click an order to view details.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">
+  <div id="toastTitle">Done</div>
+  <div class="toast-sub" id="toastSub"></div>
+</div>
+
+<script>
+  let allOrders = [];
+  let currentFilter = 'all';
+  let expandedOrderId = null;
+  let selectedOrderId = null;
+  let fileExists = {}; // cache: { fileId: true|false }
+
+  function getFileIcon(file) {
+    if (!file) return '📎';
+    if (file.toLowerCase().endsWith('.pdf'))  return '📄';
+    if (file.toLowerCase().endsWith('.docx')) return '📝';
+    if (file.match(/\.(jpg|jpeg|png)$/i))     return '🖼️';
+    return '📎';
+  }
+
+  function formatTime(dt) {
+    if (!dt) return '';
+    return dt.replace('T', ' ').slice(0, 16);
+  }
+
+  async function loadOrders() {
+    try {
+      const resp = await fetch('/api/orders');
+      allOrders = await resp.json();
+
+      const allFiles = allOrders.flatMap(o => o.files);
+      const waitingOrders = allOrders.filter(o => o.status === 'waiting').length;
+      const doneFiles     = allFiles.filter(f => f.status === 'done').length;
+      const failedFiles   = allFiles.filter(f => f.status === 'failed').length;
+      const cancelledFiles = allFiles.filter(f => f.status === 'cancelled').length;
+
+      document.getElementById('statQueue').textContent     = waitingOrders;
+      document.getElementById('statDone').textContent      = doneFiles;
+      document.getElementById('statTotal').textContent     = allOrders.length;
+      document.getElementById('statCancelled').textContent = cancelledFiles + failedFiles;
+
+      document.getElementById('queueCount').textContent = waitingOrders;
+
+      // Check which completed/failed files still exist on disk (for reprint buttons)
+      await checkAllCompletedFiles(allOrders);
+
+      renderOrders();
+      if (selectedOrderId) renderDetail(selectedOrderId);
+    } catch (e) {
+      console.error('Failed to load orders:', e);
+    }
+  }
+
+  function renderOrders() {
+    const wrap = document.getElementById('ordersWrap');
+    const filtered = currentFilter === 'all'
+      ? allOrders
+      : allOrders.filter(o => o.status === currentFilter);
+
+    if (filtered.length === 0) {
+      wrap.innerHTML = `<div class="empty-state">No orders found</div>`;
+      return;
+    }
+
+    wrap.innerHTML = filtered.map(order => `
+      <div class="order-card ${expandedOrderId === order.id ? 'expanded' : ''}">
+        <div class="order-header" onclick="toggleOrder(${order.id})">
+          <div class="order-header-left">
+            <span class="order-num">#${order.id}</span>
+            <div>
+              <div class="order-name">${order.name}</div>
+              <div class="order-meta">${order.files.length} file${order.files.length !== 1 ? 's' : ''} · ${formatTime(order.created_at)}</div>
+            </div>
+          </div>
+          <span class="status-badge ${order.status}">${order.status}</span>
+          <span class="order-chevron">▶</span>
+        </div>
+        <div class="order-files">
+          ${order.files.map(f => `
+            <div class="order-file-row">
+              <div class="file-info-block">
+                <div class="file-name">${getFileIcon(f.filename)} ${f.filename}</div>
+                <div class="file-settings">
+                  <span class="badge ${f.color === 'B&W' ? 'bw' : 'colored'}">${f.color}</span>
+                  ${f.paper} · ${f.copies}×
+                </div>
+              </div>
+              <span class="status-badge ${f.status}">${f.status}</span>
+              <div class="file-action-btns">
+                ${f.status === 'waiting' || f.status === 'printing' ? `
+                  <button class="btn-sm btn-preview" onclick="event.stopPropagation(); previewFile(${f.id})">👁</button>
+                  <button class="btn-sm btn-print"   onclick="event.stopPropagation(); printFile(${f.id})">Print</button>
+                  <button class="btn-sm btn-fail"    onclick="event.stopPropagation(); failFile(${f.id})">Failed</button>
+                  <button class="btn-sm btn-cancel"  onclick="event.stopPropagation(); cancelFile(${f.id})">✕</button>
+                ` : ''}
+                ${(f.status === 'done' || f.status === 'failed') && fileExists[f.id] !== false ? `
+                  <button class="btn-sm btn-reprint" onclick="event.stopPropagation(); reprintFile(${f.id})">🔁 Reprint</button>
+                ` : ''}
+                ${(f.status === 'done' || f.status === 'failed') && fileExists[f.id] === false ? `
+                  <span style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);">file deleted</span>
+                ` : ''}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function toggleOrder(orderId) {
+    expandedOrderId = expandedOrderId === orderId ? null : orderId;
+    selectedOrderId = orderId;
+    renderOrders();
+    renderDetail(orderId);
+  }
+
+  function renderDetail(orderId) {
+    const order = allOrders.find(o => o.id === orderId);
+    if (!order) return;
+
+    const totalSheets = order.files.reduce((sum, f) => sum + f.copies, 0);
+
+    document.getElementById('detailBody').innerHTML = `
+      <div class="detail-name">${order.name}</div>
+      <div class="detail-queue">Order #${order.id} · ${formatTime(order.created_at)}</div>
+
+      <div style="font-family:var(--mono);font-size:0.78rem;color:var(--muted);margin-bottom:1rem;">
+        ${order.files.length} file${order.files.length !== 1 ? 's' : ''} · ${totalSheets} total job-copies
+      </div>
+
+      ${order.notes ? `
+      <div style="background:var(--surface2);border-radius:6px;padding:0.7rem;font-family:var(--mono);font-size:0.78rem;color:var(--text);margin-bottom:1rem;">
+        📝 ${order.notes}
+      </div>` : ''}
+
+      ${order.files.map(f => `
+        <div style="border:1px solid var(--border);border-radius:8px;padding:0.8rem;margin-bottom:0.6rem;${f.status === 'failed' ? 'border-color:rgba(232,79,43,0.4);' : ''}">
+          <div style="font-weight:700;font-size:0.85rem;margin-bottom:0.4rem;word-break:break-all;">${getFileIcon(f.filename)} ${f.filename}</div>
+          <div style="font-family:var(--mono);font-size:0.72rem;color:var(--muted);margin-bottom:0.6rem;">
+            ${f.color} · ${f.paper} · ${f.copies}× · <span class="status-badge ${f.status}">${f.status}</span>
+          </div>
+          ${f.status === 'waiting' || f.status === 'printing' ? `
+            <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
+              <button class="btn-sm btn-print"  style="flex:1;text-align:center;" onclick="printFile(${f.id})">🖨️ Print</button>
+              <button class="btn-sm btn-fail"   style="flex:1;text-align:center;" onclick="failFile(${f.id})">⚠️ Mark Failed</button>
+              <button class="btn-sm btn-cancel" style="flex:1;text-align:center;" onclick="cancelFile(${f.id})">✕ Cancel</button>
+            </div>
+          ` : ''}
+          ${(f.status === 'done' || f.status === 'failed') ? `
+            <div style="font-family:var(--mono);font-size:0.72rem;color:var(--muted);margin-bottom:0.5rem;">
+              ${fileExists[f.id] === false
+                ? '⚠️ File deleted — student must re-upload to reprint.'
+                : fileExists[f.id] === true
+                  ? '📁 File still on disk — reprint available.'
+                  : '🔍 Checking file status...'}
+            </div>
+            ${fileExists[f.id] === true ? `
+              <button class="btn-sm btn-reprint" style="width:100%;text-align:center;" onclick="reprintFile(${f.id})">🔁 Reprint</button>
+            ` : ''}
+          ` : ''}
+        </div>
+      `).join('')}
+    `;
+  }
+
+  async function printFile(fileId) {
+    const resp = await fetch(`/api/print-file/${fileId}`, { method: 'POST' });
+    const data = await resp.json();
+
+    if (data.error) {
+      showToast('Print Failed', data.error, true);
+      loadOrders();
+      return;
+    }
+
+    // After printing, check if file still exists (for reprint availability)
+    await checkFileExists(fileId);
+    showToast('Printed ✓', 'File marked as done');
+    loadOrders();
+  }
+
+  async function failFile(fileId) {
+    await fetch(`/api/fail-file/${fileId}`, { method: 'POST' });
+    await checkFileExists(fileId);
+    showToast('Marked as Failed', 'You can reprint if file still exists', true);
+    loadOrders();
+  }
+
+  async function reprintFile(fileId) {
+    const btn = document.querySelector(`button[onclick*="reprintFile(${fileId})"]`);
+    if (btn) { btn.disabled = true; btn.textContent = 'Reprinting...'; }
+
+    const resp = await fetch(`/api/reprint-file/${fileId}`, { method: 'POST' });
+    const data = await resp.json();
+
+    if (data.error) {
+      // 410 means file is gone from disk
+      if (resp.status === 410) {
+        fileExists[fileId] = false;
+        showToast('File Deleted', 'Student must re-upload', true);
+      } else {
+        showToast('Reprint Failed', data.error, true);
+      }
+      loadOrders();
+      return;
+    }
+
+    showToast('Reprinted ✓', 'Sent to printer again');
+    await checkFileExists(fileId);
+    loadOrders();
+  }
+
+  async function cancelFile(fileId) {
+    await fetch(`/api/cancel-file/${fileId}`, { method: 'POST' });
+    showToast('Cancelled', 'File removed from queue', true);
+    loadOrders();
+  }
+
+  function previewFile(fileId) {
+    window.open(`/api/preview-file/${fileId}`, '_blank');
+  }
+
+  async function checkFileExists(fileId) {
+    try {
+      const resp = await fetch(`/api/check-file/${fileId}`);
+      const data = await resp.json();
+      fileExists[fileId] = data.exists;
+    } catch {
+      fileExists[fileId] = false;
+    }
+  }
+
+  async function checkAllCompletedFiles(orders) {
+    // Only check files that are done or failed — waiting/cancelled don't need it
+    const filesToCheck = orders
+      .flatMap(o => o.files)
+      .filter(f => f.status === 'done' || f.status === 'failed')
+      .filter(f => fileExists[f.id] === undefined); // skip already-cached
+
+    await Promise.all(filesToCheck.map(f => checkFileExists(f.id)));
+  }
+
+  function filterOrders(filter, btn) {
+    currentFilter = filter;
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    renderOrders();
+  }
+
+  function showToast(title, sub, isError = false) {
+    const toast = document.getElementById('toast');
+    document.getElementById('toastTitle').textContent = title;
+    document.getElementById('toastSub').textContent   = sub;
+    toast.className = 'toast' + (isError ? ' error' : '');
+    setTimeout(() => toast.classList.add('show'), 10);
+    setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+
+  loadOrders();
+  setInterval(loadOrders, 5000);
+</script>
+</body>
+</html>

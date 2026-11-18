@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Receipt #{{ sale.id }} – {{ shop_name }}</title>
+<style>
+  /* ── Screen styles ─────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #0d0d0d;
+    --mid: #555;
+    --light: #aaa;
+    --border: #ddd;
+  }
+
+  body {
+    font-family: 'Courier New', Courier, monospace;
+    background: #f0ebe0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1rem;
+    min-height: 100vh;
+    gap: 1rem;
+  }
+
+  .screen-actions {
+    display: flex;
+    gap: 0.6rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .btn {
+    padding: 0.6rem 1.4rem;
+    border-radius: 8px;
+    border: none;
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .btn-print  { background: #1faa5e; color: white; }
+  .btn-close  { background: #888;    color: white; }
+  .btn-print:hover { opacity: 0.9; }
+  .btn-close:hover { opacity: 0.9; }
+
+  /* ── Receipt card ──────────────────────────────────────── */
+  .receipt {
+    background: white;
+    width: 100%;
+    max-width: 310px;
+    padding: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    font-size: 0.75rem;
+    color: var(--ink);
+    line-height: 1.45;
+  }
+
+  .shop-name {
+    text-align: center;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    margin-bottom: 0.1rem;
+  }
+
+  .shop-sub {
+    text-align: center;
+    font-size: 0.65rem;
+    color: var(--mid);
+    margin-bottom: 0.4rem;
+  }
+
+  .divider {
+    border: none;
+    border-top: 1px dashed var(--border);
+    margin: 0.45rem 0;
+  }
+
+  .divider-solid {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 0.45rem 0;
+  }
+
+  .meta-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.68rem;
+    color: var(--mid);
+    margin-bottom: 0.15rem;
+  }
+
+  /* Items table */
+  .items-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.25rem 0;
+    font-size: 0.72rem;
+  }
+
+  .items-table th {
+    text-align: left;
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    color: var(--light);
+    border-bottom: 1px solid var(--border);
+    padding: 0.1rem 0;
+  }
+
+  .items-table th:last-child,
+  .items-table td:last-child { text-align: right; }
+
+  .items-table td {
+    padding: 0.2rem 0;
+    vertical-align: top;
+  }
+
+  .item-name { font-weight: 600; }
+  .item-qty  { color: var(--mid); font-size: 0.65rem; }
+
+  /* Totals */
+  .totals { margin-top: 0.25rem; }
+
+  .total-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.14rem 0;
+    font-size: 0.74rem;
+  }
+
+  .total-row.grand {
+    font-size: 0.9rem;
+    font-weight: 700;
+    border-top: 1px solid var(--ink);
+    margin-top: 0.25rem;
+    padding-top: 0.3rem;
+  }
+
+  .total-row.change {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #1faa5e;
+  }
+
+  .total-row .label { color: var(--mid); }
+  .total-row.grand .label,
+  .total-row.change .label { color: var(--ink); }
+
+  .footer {
+    text-align: center;
+    font-size: 0.62rem;
+    color: var(--light);
+    margin-top: 0.6rem;
+    line-height: 1.5;
+  }
+
+  /* ── Print styles ──────────────────────────────────────── */
+  @media print {
+    body {
+      background: white;
+      padding: 0;
+    }
+
+    .screen-actions { display: none; }
+
+    .receipt {
+      box-shadow: none;
+      border: none;
+      max-width: 100%;
+      padding: 0.5rem;
+    }
+
+    @page {
+      size: A6;
+      margin: 0.8cm;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="screen-actions">
+  <button class="btn btn-print" onclick="window.print()">🖨️ Print Receipt</button>
+  <button class="btn btn-close" onclick="window.close()">✕ Close</button>
+</div>
+
+<div class="receipt">
+
+  <div class="shop-name">{{ shop_name }}</div>
+  <div class="shop-sub">Official Receipt</div>
+
+  <hr class="divider">
+
+  <div class="meta-row">
+    <span>Receipt #</span>
+    <span>{{ sale.id }}</span>
+  </div>
+  <div class="meta-row">
+    <span>Date</span>
+    <span>{{ sale.created_at[:10] }}</span>
+  </div>
+  <div class="meta-row">
+    <span>Time</span>
+    <span>{{ sale.created_at[11:16] }}</span>
+  </div>
+  <div class="meta-row">
+    <span>Payment</span>
+    <span>{{ sale.payment_method }}</span>
+  </div>
+
+  <hr class="divider">
+
+  <table class="items-table">
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th>Qty</th>
+        <th>Price</th>
+        <th>Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for item in sale.lines %}
+      <tr>
+        <td><div class="item-name">{{ item.service_name }}</div></td>
+        <td>{{ item.quantity | int if item.quantity == item.quantity | int else item.quantity }}</td>
+        <td>₱{{ "%.2f" | format(item.unit_price) }}</td>
+        <td>₱{{ "%.2f" | format(item.line_total) }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <hr class="divider-solid">
+
+  <div class="totals">
+    <div class="total-row">
+      <span class="label">Subtotal</span>
+      <span>₱{{ "%.2f" | format(sale.subtotal) }}</span>
+    </div>
+
+    {% if sale.discount > 0 %}
+    <div class="total-row">
+      <span class="label">Discount</span>
+      <span>− ₱{{ "%.2f" | format(sale.discount) }}</span>
+    </div>
+    {% endif %}
+
+    <div class="total-row grand">
+      <span class="label">TOTAL</span>
+      <span>₱{{ "%.2f" | format(sale.total) }}</span>
+    </div>
+
+    <div class="total-row">
+      <span class="label">Cash</span>
+      <span>₱{{ "%.2f" | format(sale.cash_received) }}</span>
+    </div>
+
+    <div class="total-row change">
+      <span class="label">Change</span>
+      <span>₱{{ "%.2f" | format(sale.change_given) }}</span>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="footer">
+    Thank you for your business!<br>
+    {{ shop_name }} · Marawoy, Lipa City
+  </div>
+
+</div>
+
+<script>
+  // Auto-open print dialog when page loads
+  window.addEventListener('load', () => {
+    // Small delay so the page renders fully before print dialog opens
+    setTimeout(() => window.print(), 400);
+  });
+</script>
+</body>
+</html>

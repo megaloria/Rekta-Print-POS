@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RektaPrint – Expenses</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --surface2: #222222;
+    --border: #2e2e2e;
+    --text: #f0ebe0;
+    --muted: #888;
+    --accent: #e84f2b;
+    --blue: #2b6be8;
+    --green: #1faa5e;
+    --yellow: #f5a623;
+    --mono: 'DM Mono', monospace;
+    --sans: 'Syne', sans-serif;
+  }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.8rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  .logo { font-size: 1.3rem; font-weight: 800; letter-spacing: -0.04em; display: flex; align-items: center; gap: 0.5rem; }
+  .logo-dot { width: 10px; height: 10px; background: var(--accent); border-radius: 50%; }
+
+  .nav-links { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+
+  .nav-link {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    padding: 0.45rem 0.9rem;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    text-decoration: none;
+    transition: all 0.15s;
+  }
+
+  .nav-link:hover, .nav-link.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+
+  main { padding: 1.8rem; max-width: 1000px; margin: 0 auto; }
+
+  .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.3rem; }
+  .page-title { font-size: 1.3rem; font-weight: 800; }
+
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.3rem;
+  }
+
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.2rem; }
+  .stat-label { font-family: var(--mono); font-size: 0.65rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.4rem; }
+  .stat-value { font-size: 1.7rem; font-weight: 800; color: var(--accent); }
+
+  .add-btn {
+    padding: 0.6rem 1.1rem;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+
+  .add-btn:hover { opacity: 0.9; }
+
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+
+  table { width: 100%; border-collapse: collapse; }
+
+  th {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 0.8rem 1.2rem;
+    text-align: left;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  td { padding: 0.9rem 1.2rem; font-size: 0.85rem; border-bottom: 1px solid var(--border); }
+  tr:last-child td { border-bottom: none; }
+
+  .cat-badge {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    font-weight: 600;
+    padding: 0.25rem 0.6rem;
+    border-radius: 6px;
+    background: var(--surface2);
+    color: var(--text);
+  }
+
+  .amount { font-family: var(--mono); font-weight: 700; color: var(--accent); }
+  .empty-state { padding: 2.5rem; text-align: center; color: var(--muted); font-family: var(--mono); font-size: 0.78rem; }
+
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+
+  .modal-overlay.show { display: flex; }
+
+  .modal-card { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 1.8rem; max-width: 380px; width: 90%; }
+  .modal-card h3 { font-size: 1.1rem; font-weight: 800; margin-bottom: 1.2rem; }
+
+  .field { margin-bottom: 1rem; }
+
+  label {
+    display: block;
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.4rem;
+  }
+
+  input, select {
+    width: 100%;
+    padding: 0.6rem 0.8rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    outline: none;
+  }
+
+  input:focus, select:focus { border-color: var(--blue); }
+
+  .modal-actions { display: flex; gap: 0.6rem; margin-top: 1.3rem; }
+
+  .modal-btn { flex: 1; padding: 0.7rem; border-radius: 8px; border: none; font-weight: 700; cursor: pointer; font-size: 0.85rem; }
+  .modal-btn.cancel { background: var(--surface2); color: var(--muted); }
+  .modal-btn.confirm { background: var(--accent); color: white; }
+
+  .toast {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--green);
+    border-radius: 8px;
+    padding: 0.8rem 1.2rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    z-index: 200;
+    transform: translateX(120%);
+    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  }
+
+  .toast.show { transform: translateX(0); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><span class="logo-dot"></span>RektaPrint</div>
+  <div class="nav-links">
+    <a href="/admin" class="nav-link">Print Queue</a>
+    <a href="/pos" class="nav-link">POS</a>
+    <a href="/dashboard" class="nav-link">Dashboard</a>
+    <a href="/inventory" class="nav-link">Inventory</a>
+    <a href="/expenses" class="nav-link active">Expenses</a>
+    <a href="/wastage" class="nav-link">Wastage</a>
+    <a href="/settings" class="nav-link">Settings</a>
+    <a href="/logout" class="nav-link">Logout</a>
+  </div>
+</header>
+
+<main>
+  <div class="page-header">
+    <div class="page-title">Expenses</div>
+    <button class="add-btn" onclick="openAddExpenseModal()">+ Add Expense</button>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">Today's Expenses</div>
+      <div class="stat-value" id="todayExpenses">₱0.00</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">This Month's Expenses</div>
+      <div class="stat-value" id="monthExpenses">₱0.00</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <table>
+      <thead>
+        <tr><th>Date</th><th>Category</th><th>Description</th><th>Amount</th></tr>
+      </thead>
+      <tbody id="expensesBody"></tbody>
+    </table>
+  </div>
+</main>
+
+<div class="modal-overlay" id="addExpenseModal">
+  <div class="modal-card">
+    <h3>Add Expense</h3>
+    <div class="field">
+      <label>Category</label>
+      <select id="expenseCategory">
+        <option>Rent</option>
+        <option>Ink</option>
+        <option>Paper</option>
+        <option>Electricity</option>
+        <option>Internet</option>
+        <option>Other</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Description</label>
+      <input type="text" id="expenseDescription" placeholder="e.g. Monthly shop rent">
+    </div>
+    <div class="field">
+      <label>Amount</label>
+      <input type="number" id="expenseAmount" min="0.01" step="0.01" placeholder="0.00">
+    </div>
+    <div class="field">
+      <label>Date</label>
+      <input type="date" id="expenseDate">
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn cancel" onclick="closeAddExpenseModal()">Cancel</button>
+      <button class="modal-btn confirm" onclick="submitExpense()">Add Expense</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  async function loadExpenses() {
+    const resp = await fetch('/api/expenses');
+    const expenses = await resp.json();
+    renderExpenses(expenses);
+    loadTotals();
+  }
+
+  async function loadTotals() {
+    const resp = await fetch('/api/dashboard');
+    const data = await resp.json();
+    document.getElementById('monthExpenses').textContent = `₱${data.month_expenses.toFixed(2)}`;
+  }
+
+  function renderExpenses(expenses) {
+    const tbody = document.getElementById('expensesBody');
+    if (expenses.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="4" class="empty-state">No expenses recorded yet</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = expenses.map(e => `
+      <tr>
+        <td style="font-family:var(--mono);font-size:0.78rem;color:var(--muted);">${e.expense_date}</td>
+        <td><span class="cat-badge">${e.category}</span></td>
+        <td>${e.description || '-'}</td>
+        <td class="amount">₱${e.amount.toFixed(2)}</td>
+      </tr>
+    `).join('');
+
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const todayTotal = expenses
+      .filter(e => e.expense_date === todayStr)
+      .reduce((sum, e) => sum + e.amount, 0);
+    document.getElementById('todayExpenses').textContent = `₱${todayTotal.toFixed(2)}`;
+  }
+
+  function openAddExpenseModal() {
+    document.getElementById('expenseDescription').value = '';
+    document.getElementById('expenseAmount').value = '';
+    document.getElementById('expenseDate').value = new Date().toISOString().slice(0, 10);
+    document.getElementById('addExpenseModal').classList.add('show');
+  }
+
+  function closeAddExpenseModal() {
+    document.getElementById('addExpenseModal').classList.remove('show');
+  }
+
+  async function submitExpense() {
+    const category = document.getElementById('expenseCategory').value;
+    const description = document.getElementById('expenseDescription').value;
+    const amount = parseFloat(document.getElementById('expenseAmount').value);
+    const expense_date = document.getElementById('expenseDate').value;
+
+    if (!amount || amount <= 0) {
+      showToast('Enter a valid amount', true);
+      return;
+    }
+
+    const resp = await fetch('/api/expenses/add', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ category, description, amount, expense_date })
+    });
+    const data = await resp.json();
+
+    if (data.error) {
+      showToast(data.error, true);
+      return;
+    }
+
+    closeAddExpenseModal();
+    showToast('Expense added');
+    loadExpenses();
+  }
+
+  function showToast(msg, isError = false) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.style.borderLeftColor = isError ? 'var(--accent)' : 'var(--green)';
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+
+  loadExpenses();
+</script>
+</body>
+</html>

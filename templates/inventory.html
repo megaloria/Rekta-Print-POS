@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RektaPrint – Inventory</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --surface2: #222222;
+    --border: #2e2e2e;
+    --text: #f0ebe0;
+    --muted: #888;
+    --accent: #e84f2b;
+    --blue: #2b6be8;
+    --green: #1faa5e;
+    --yellow: #f5a623;
+    --mono: 'DM Mono', monospace;
+    --sans: 'Syne', sans-serif;
+  }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.8rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  .logo { font-size: 1.3rem; font-weight: 800; letter-spacing: -0.04em; display: flex; align-items: center; gap: 0.5rem; }
+  .logo-dot { width: 10px; height: 10px; background: var(--accent); border-radius: 50%; }
+
+  .nav-links { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+
+  .nav-link {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    padding: 0.45rem 0.9rem;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    text-decoration: none;
+    transition: all 0.15s;
+  }
+
+  .nav-link:hover, .nav-link.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+
+  main { padding: 1.8rem; max-width: 1100px; margin: 0 auto; }
+
+  .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.3rem;
+  }
+
+  .page-title { font-size: 1.3rem; font-weight: 800; }
+
+  .add-btn {
+    padding: 0.6rem 1.1rem;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+  }
+
+  .add-btn:hover { opacity: 0.9; }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  table { width: 100%; border-collapse: collapse; }
+
+  th {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 0.8rem 1.2rem;
+    text-align: left;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  td {
+    padding: 0.9rem 1.2rem;
+    font-size: 0.85rem;
+    border-bottom: 1px solid var(--border);
+  }
+
+  tr:last-child td { border-bottom: none; }
+
+  .item-name { font-weight: 700; }
+  .item-unit { font-family: var(--mono); font-size: 0.7rem; color: var(--muted); }
+
+  .stock-num { font-family: var(--mono); font-weight: 600; }
+  .stock-num.low { color: #ff7070; }
+
+  .low-badge {
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    font-weight: 700;
+    padding: 0.2rem 0.5rem;
+    border-radius: 8px;
+    background: rgba(255,80,80,0.15);
+    color: #ff7070;
+    margin-left: 0.5rem;
+  }
+
+  .action-btns { display: flex; gap: 0.4rem; }
+
+  .btn-sm {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    padding: 0.35rem 0.7rem;
+    border-radius: 6px;
+    border: 1px solid;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.15s;
+  }
+
+  .btn-in  { background: rgba(31,170,94,0.12); border-color: rgba(31,170,94,0.35); color: var(--green); }
+  .btn-out { background: rgba(232,79,43,0.1); border-color: rgba(232,79,43,0.3); color: var(--accent); }
+  .btn-in:hover  { background: var(--green); color: white; }
+  .btn-out:hover { background: var(--accent); color: white; }
+
+  .btn-delete {
+    background: rgba(255,80,80,0.08);
+    border-color: rgba(255,80,80,0.25);
+    color: #ff7070;
+  }
+  .btn-delete:hover { background: #ff7070; color: white; }
+
+  /* Modal */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(4px);
+  }
+
+  .modal-overlay.show { display: flex; }
+
+  .modal-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.8rem;
+    max-width: 380px;
+    width: 90%;
+  }
+
+  .modal-card h3 { font-size: 1.1rem; font-weight: 800; margin-bottom: 1.2rem; }
+
+  .field { margin-bottom: 1rem; }
+
+  label {
+    display: block;
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.4rem;
+  }
+
+  input, select {
+    width: 100%;
+    padding: 0.6rem 0.8rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    outline: none;
+  }
+
+  input:focus, select:focus { border-color: var(--blue); }
+
+  .modal-actions { display: flex; gap: 0.6rem; margin-top: 1.3rem; }
+
+  .modal-btn {
+    flex: 1;
+    padding: 0.7rem;
+    border-radius: 8px;
+    border: none;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 0.85rem;
+  }
+
+  .modal-btn.cancel { background: var(--surface2); color: var(--muted); }
+  .modal-btn.confirm { background: var(--accent); color: white; }
+
+  .toast {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--green);
+    border-radius: 8px;
+    padding: 0.8rem 1.2rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    z-index: 200;
+    transform: translateX(120%);
+    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  }
+
+  .toast.show { transform: translateX(0); }
+
+  /* Supply toggle switch */
+  .toggle-switch {
+    position: relative;
+    width: 40px;
+    height: 22px;
+    display: inline-block;
+  }
+
+  .toggle-switch input { opacity: 0; width: 0; height: 0; }
+
+  .toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background: var(--border);
+    border-radius: 22px;
+    transition: 0.2s;
+  }
+
+  .toggle-slider::before {
+    content: '';
+    position: absolute;
+    width: 16px; height: 16px;
+    left: 3px; bottom: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: 0.2s;
+  }
+
+  .toggle-switch input:checked + .toggle-slider { background: var(--green); }
+  .toggle-switch input:checked + .toggle-slider::before { transform: translateX(18px); }
+
+  .inline-price-input {
+    width: 80px;
+    padding: 0.35rem 0.5rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    text-align: right;
+  }
+
+  .inline-save-btn {
+    padding: 0.35rem 0.6rem;
+    background: var(--green);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    cursor: pointer;
+    margin-left: 0.4rem;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><span class="logo-dot"></span>RektaPrint</div>
+  <div class="nav-links">
+    <a href="/admin" class="nav-link">Print Queue</a>
+    <a href="/pos" class="nav-link">POS</a>
+    <a href="/dashboard" class="nav-link">Dashboard</a>
+    <a href="/inventory" class="nav-link active">Inventory</a>
+    <a href="/expenses" class="nav-link">Expenses</a>
+    <a href="/wastage" class="nav-link">Wastage</a>
+    <a href="/settings" class="nav-link">Settings</a>
+    <a href="/logout" class="nav-link">Logout</a>
+  </div>
+</header>
+
+<main>
+  <div class="page-header">
+    <div class="page-title">Inventory</div>
+    <button class="add-btn" onclick="openAddItemModal()">+ Add Item</button>
+  </div>
+
+  <div class="panel">
+    <table>
+      <thead>
+        <tr>
+          <th>Item</th>
+          <th>Beginning</th>
+          <th>Stock In</th>
+          <th>Stock Out</th>
+          <th>Remaining</th>
+          <th>Sells as Supply?</th>
+          <th>Selling Price</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="inventoryBody"></tbody>
+    </table>
+  </div>
+</main>
+
+<!-- Stock In/Out Modal -->
+<div class="modal-overlay" id="stockModal">
+  <div class="modal-card">
+    <h3 id="stockModalTitle">Add Stock</h3>
+    <input type="hidden" id="stockItemId">
+    <input type="hidden" id="stockType">
+    <div class="field">
+      <label>Quantity</label>
+      <input type="number" id="stockQuantity" min="0.01" step="0.01" placeholder="0">
+    </div>
+    <div class="field">
+      <label>Note (optional)</label>
+      <input type="text" id="stockNote" placeholder="e.g. Bought from supplier">
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn cancel" onclick="closeStockModal()">Cancel</button>
+      <button class="modal-btn confirm" onclick="submitStock()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add Item Modal -->
+<div class="modal-overlay" id="addItemModal">
+  <div class="modal-card">
+    <h3>Add Inventory Item</h3>
+    <div class="field">
+      <label>Item Name</label>
+      <input type="text" id="newItemName" placeholder="e.g. Sticker Paper">
+    </div>
+    <div class="field">
+      <label>Unit</label>
+      <select id="newItemUnit">
+        <option value="pc">pc</option>
+        <option value="ream">ream</option>
+        <option value="pack">pack</option>
+        <option value="bottle">bottle</option>
+        <option value="box">box</option>
+        <option value="roll">roll</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Beginning Stock</label>
+      <input type="number" id="newItemBeginning" min="0" step="0.01" value="0">
+    </div>
+    <div class="field">
+      <label>Low Stock Alert Threshold</label>
+      <input type="number" id="newItemThreshold" min="0" step="0.01" value="5">
+    </div>
+    <div class="field">
+      <label>Cost Price (for wastage estimates)</label>
+      <input type="number" id="newItemUnitCost" min="0" step="0.5" value="0">
+    </div>
+    <div class="field">
+      <label>Sell in POS as School Supply?</label>
+      <label class="toggle-switch">
+        <input type="checkbox" id="newItemIsSupply" onchange="toggleNewItemSellingPrice(this.checked)">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    <div class="field" id="newItemSellingPriceField" style="display:none;">
+      <label>Selling Price (per unit)</label>
+      <input type="number" id="newItemSellingPrice" min="0" step="0.5" value="0">
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn cancel" onclick="closeAddItemModal()">Cancel</button>
+      <button class="modal-btn confirm" onclick="submitNewItem()">Add Item</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal-card">
+    <h3 id="deleteModalTitle">Delete Item?</h3>
+    <p style="font-family:var(--mono);font-size:0.78rem;color:var(--muted);margin-bottom:0.5rem;">
+      This permanently removes the item and its stock history. This cannot be undone.
+    </p>
+    <input type="hidden" id="deleteItemId">
+    <div class="modal-actions">
+      <button class="modal-btn cancel" onclick="closeDeleteModal()">Cancel</button>
+      <button class="modal-btn confirm" style="background:#ff7070;" onclick="submitDeleteItem()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  let inventory = [];
+
+  async function loadInventory() {
+    const resp = await fetch('/api/inventory');
+    inventory = await resp.json();
+    renderInventory();
+  }
+
+  function renderInventory() {
+    const tbody = document.getElementById('inventoryBody');
+    if (inventory.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--muted);font-family:var(--mono);font-size:0.78rem;">No items yet</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = inventory.map(item => `
+      <tr>
+        <td>
+          <div class="item-name">${item.name}</div>
+          <div class="item-unit">${item.unit}</div>
+        </td>
+        <td class="stock-num">${item.beginning_stock}</td>
+        <td class="stock-num" style="color:var(--green)">+${item.stock_in}</td>
+        <td class="stock-num" style="color:var(--accent)">−${item.stock_out}</td>
+        <td>
+          <span class="stock-num ${item.low_stock ? 'low' : ''}">${item.remaining_stock}</span>
+          ${item.low_stock ? '<span class="low-badge">LOW</span>' : ''}
+        </td>
+        <td>
+          <label class="toggle-switch">
+            <input type="checkbox" ${item.is_supply_item ? 'checked' : ''} onchange="toggleSupply(${item.id}, this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+        </td>
+        <td>
+          <input type="number" class="inline-price-input" id="sell-price-${item.id}" value="${(item.selling_price || 0).toFixed(2)}" min="0" step="0.5">
+          <button class="inline-save-btn" onclick="saveSellingPrice(${item.id})">Save</button>
+        </td>
+        <td>
+          <div class="action-btns">
+            <button class="btn-sm btn-in" onclick="openStockModal(${item.id}, '${item.name}', 'in')">+ In</button>
+            <button class="btn-sm btn-out" onclick="openStockModal(${item.id}, '${item.name}', 'out')">− Out</button>
+            <button class="btn-sm btn-delete" onclick="confirmDeleteItem(${item.id}, '${item.name.replace(/'/g, "\\'")}')">🗑</button>
+          </div>
+        </td>
+      </tr>
+    `).join('');
+  }
+
+  async function toggleSupply(itemId, isChecked) {
+    const resp = await fetch(`/api/inventory/${itemId}/mark-supply`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_supply_item: isChecked })
+    });
+    const data = await resp.json();
+    if (data.error) {
+      showToast(data.error, true);
+      return;
+    }
+    showToast(isChecked ? 'Now sellable in POS' : 'Removed from POS supplies');
+  }
+
+  async function saveSellingPrice(itemId) {
+    const price = parseFloat(document.getElementById(`sell-price-${itemId}`).value);
+    if (isNaN(price) || price < 0) {
+      showToast('Enter a valid price', true);
+      return;
+    }
+    const resp = await fetch(`/api/inventory/${itemId}/selling-price`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ selling_price: price })
+    });
+    const data = await resp.json();
+    if (data.error) {
+      showToast(data.error, true);
+      return;
+    }
+    showToast('Selling price updated');
+  }
+
+  function openStockModal(id, name, type) {
+    document.getElementById('stockItemId').value = id;
+    document.getElementById('stockType').value = type;
+    document.getElementById('stockModalTitle').textContent = `${type === 'in' ? 'Add Stock' : 'Remove Stock'} — ${name}`;
+    document.getElementById('stockQuantity').value = '';
+    document.getElementById('stockNote').value = '';
+    document.getElementById('stockModal').classList.add('show');
+  }
+
+  function closeStockModal() {
+    document.getElementById('stockModal').classList.remove('show');
+  }
+
+  async function submitStock() {
+    const id = document.getElementById('stockItemId').value;
+    const type = document.getElementById('stockType').value;
+    const quantity = parseFloat(document.getElementById('stockQuantity').value);
+    const note = document.getElementById('stockNote').value;
+
+    if (!quantity || quantity <= 0) {
+      showToast('Enter a valid quantity', true);
+      return;
+    }
+
+    const endpoint = type === 'in' ? `/api/inventory/${id}/stock-in` : `/api/inventory/${id}/stock-out`;
+    const resp = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ quantity, note })
+    });
+    const data = await resp.json();
+
+    if (data.error) {
+      showToast(data.error, true);
+      return;
+    }
+
+    closeStockModal();
+    showToast('Stock updated');
+    loadInventory();
+  }
+
+  function openAddItemModal() {
+    document.getElementById('newItemName').value = '';
+    document.getElementById('newItemBeginning').value = 0;
+    document.getElementById('newItemThreshold').value = 5;
+    document.getElementById('newItemUnitCost').value = 0;
+    document.getElementById('newItemIsSupply').checked = false;
+    document.getElementById('newItemSellingPrice').value = 0;
+    document.getElementById('newItemSellingPriceField').style.display = 'none';
+    document.getElementById('addItemModal').classList.add('show');
+  }
+
+  function toggleNewItemSellingPrice(checked) {
+    document.getElementById('newItemSellingPriceField').style.display = checked ? '' : 'none';
+  }
+
+  function closeAddItemModal() {
+    document.getElementById('addItemModal').classList.remove('show');
+  }
+
+  async function submitNewItem() {
+    const name = document.getElementById('newItemName').value.trim();
+    const unit = document.getElementById('newItemUnit').value;
+    const beginning_stock = parseFloat(document.getElementById('newItemBeginning').value) || 0;
+    const low_stock_alert = parseFloat(document.getElementById('newItemThreshold').value) || 5;
+    const unit_cost = parseFloat(document.getElementById('newItemUnitCost').value) || 0;
+    const is_supply_item = document.getElementById('newItemIsSupply').checked;
+    const selling_price = parseFloat(document.getElementById('newItemSellingPrice').value) || 0;
+
+    if (!name) {
+      showToast('Item name is required', true);
+      return;
+    }
+
+    const resp = await fetch('/api/inventory/add-item', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, unit, beginning_stock, low_stock_alert, unit_cost, selling_price, is_supply_item })
+    });
+    const data = await resp.json();
+
+    if (data.error) {
+      showToast(data.error, true);
+      return;
+    }
+
+    closeAddItemModal();
+    showToast('Item added');
+    loadInventory();
+  }
+
+  function confirmDeleteItem(id, name) {
+    document.getElementById('deleteItemId').value = id;
+    document.getElementById('deleteModalTitle').textContent = `Delete "${name}"?`;
+    document.getElementById('deleteModal').classList.add('show');
+  }
+
+  function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.remove('show');
+  }
+
+  async function submitDeleteItem() {
+    const id = document.getElementById('deleteItemId').value;
+    const resp = await fetch(`/api/inventory/${id}/delete`, { method: 'POST' });
+    const data = await resp.json();
+
+    if (data.error) {
+      showToast(data.error, true);
+      return;
+    }
+
+    closeDeleteModal();
+    showToast('Item deleted');
+    loadInventory();
+  }
+
+  function showToast(msg, isError = false) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.style.borderLeftColor = isError ? 'var(--accent)' : 'var(--green)';
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+
+  loadInventory();
+</script>
+</body>
+</html>

@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RektaPrint – Settings</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --surface2: #222222;
+    --border: #2e2e2e;
+    --text: #f0ebe0;
+    --muted: #888;
+    --accent: #e84f2b;
+    --blue: #2b6be8;
+    --green: #1faa5e;
+    --mono: 'DM Mono', monospace;
+    --sans: 'Syne', sans-serif;
+  }
+
+  body {
+    font-family: var(--sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.8rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  .logo { font-size: 1.3rem; font-weight: 800; letter-spacing: -0.04em; display: flex; align-items: center; gap: 0.5rem; }
+  .logo-dot { width: 10px; height: 10px; background: var(--accent); border-radius: 50%; }
+
+  .nav-links { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+
+  .nav-link {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    padding: 0.45rem 0.9rem;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    text-decoration: none;
+    transition: all 0.15s;
+  }
+
+  .nav-link:hover, .nav-link.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+
+  main { padding: 1.8rem; max-width: 900px; margin: 0 auto; }
+
+  .page-title { font-size: 1.3rem; font-weight: 800; margin-bottom: 1.3rem; }
+
+  .section-title {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--muted);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    margin: 1.8rem 0 0.8rem;
+  }
+
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+
+  .price-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.9rem 1.3rem;
+    border-bottom: 1px solid var(--border);
+    gap: 1rem;
+  }
+
+  .price-row:last-child { border-bottom: none; }
+
+  .price-info { flex: 1; }
+  .price-name { font-weight: 700; font-size: 0.9rem; }
+  .price-unit { font-family: var(--mono); font-size: 0.7rem; color: var(--muted); }
+
+  .price-edit {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .price-input {
+    width: 100px;
+    padding: 0.5rem 0.7rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 0.9rem;
+    text-align: right;
+    outline: none;
+  }
+
+  .price-input:focus { border-color: var(--blue); }
+
+  .save-btn {
+    padding: 0.5rem 0.9rem;
+    background: var(--green);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.78rem;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+
+  .save-btn:hover { opacity: 0.85; }
+  .save-btn.saved { background: var(--surface2); color: var(--green); }
+
+  .printer-select {
+    flex: 1;
+    padding: 0.55rem 0.8rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 0.78rem;
+    outline: none;
+    min-width: 220px;
+  }
+
+  .printer-select:focus { border-color: var(--blue); }
+
+  .add-service-card {
+    background: var(--surface);
+    border: 1px dashed var(--border);
+    border-radius: 12px;
+    padding: 1rem 1.3rem;
+    margin-top: 0.7rem;
+  }
+
+  .add-service-title {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin-bottom: 0.7rem;
+  }
+
+  .add-service-row {
+    display: flex;
+    gap: 0.6rem;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .add-service-row input[type="text"],
+  .add-service-row input[type="number"] {
+    padding: 0.55rem 0.8rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    outline: none;
+    min-width: 120px;
+  }
+
+  .add-service-row input:focus { border-color: var(--blue); }
+
+  .promo-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .add-service-btn {
+    padding: 0.55rem 1.1rem;
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-family: var(--sans);
+    font-weight: 700;
+    font-size: 0.82rem;
+    cursor: pointer;
+  }
+
+  .add-service-btn:hover { opacity: 0.9; }
+
+  .promo-badge {
+    font-family: var(--mono);
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: var(--accent);
+    background: rgba(232,79,43,0.12);
+    padding: 0.15rem 0.5rem;
+    border-radius: 8px;
+    margin-left: 0.5rem;
+  }
+
+  .delete-service-btn {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 0.9rem;
+    padding: 0.4rem;
+    margin-left: 0.3rem;
+  }
+
+  .delete-service-btn:hover { color: #ff7070; }
+
+  .toast {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--green);
+    border-radius: 8px;
+    padding: 0.8rem 1.2rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    z-index: 200;
+    transform: translateX(120%);
+    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  }
+
+  .toast.show { transform: translateX(0); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><span class="logo-dot"></span>RektaPrint</div>
+  <div class="nav-links">
+    <a href="/admin" class="nav-link">Print Queue</a>
+    <a href="/pos" class="nav-link">POS</a>
+    <a href="/dashboard" class="nav-link">Dashboard</a>
+    <a href="/inventory" class="nav-link">Inventory</a>
+    <a href="/expenses" class="nav-link">Expenses</a>
+    <a href="/wastage" class="nav-link">Wastage</a>
+    <a href="/settings" class="nav-link active">Settings</a>
+    <a href="/logout" class="nav-link">Logout</a>
+  </div>
+</header>
+
+<main>
+  <div class="page-title">Settings</div>
+
+  <div class="section-title">Printer Setup</div>
+  <div class="panel" id="printerPanel">
+    <div class="price-row" style="flex-wrap:wrap;gap:0.8rem;">
+      <div class="price-info" style="min-width:160px;">
+        <div class="price-name">Black &amp; White Printer</div>
+        <div class="price-unit">used for B&amp;W print jobs</div>
+      </div>
+      <div class="price-edit" style="flex:1;min-width:220px;flex-direction:column;align-items:stretch;gap:0.4rem;">
+        <select class="printer-select" id="select-printer_bw" onchange="syncPrinterInput('printer_bw')">
+          <option value="">Loading printers...</option>
+        </select>
+        <input type="text" class="price-input" id="input-printer_bw" placeholder="Or type printer name manually" style="width:100%;">
+        <button class="save-btn" id="save-printer_bw" onclick="savePrinterSetting('printer_bw')" style="align-self:flex-end;">Save</button>
+      </div>
+    </div>
+    <div class="price-row" style="flex-wrap:wrap;gap:0.8rem;">
+      <div class="price-info" style="min-width:160px;">
+        <div class="price-name">Colored Printer</div>
+        <div class="price-unit">used for Colored print jobs</div>
+      </div>
+      <div class="price-edit" style="flex:1;min-width:220px;flex-direction:column;align-items:stretch;gap:0.4rem;">
+        <select class="printer-select" id="select-printer_colored" onchange="syncPrinterInput('printer_colored')">
+          <option value="">Loading printers...</option>
+        </select>
+        <input type="text" class="price-input" id="input-printer_colored" placeholder="Or type printer name manually" style="width:100%;">
+        <button class="save-btn" id="save-printer_colored" onclick="savePrinterSetting('printer_colored')" style="align-self:flex-end;">Save</button>
+      </div>
+    </div>
+    <div class="price-row" style="flex-wrap:wrap;gap:0.8rem;">
+      <div class="price-info" style="min-width:160px;">
+        <div class="price-name">SumatraPDF Path</div>
+        <div class="price-unit">for silent PDF printing</div>
+      </div>
+      <div class="price-edit" style="flex:1;min-width:220px;">
+        <input type="text" class="price-input" id="input-sumatra_path" style="width:100%;min-width:220px;" placeholder="C:\Path\To\SumatraPDF.exe">
+        <button class="save-btn" id="save-sumatra_path" onclick="saveTextSetting('sumatra_path')">Save</button>
+      </div>
+    </div>
+    <div class="price-row" style="flex-wrap:wrap;gap:0.8rem;border-bottom:none;">
+      <div class="price-info" style="min-width:160px;">
+        <div class="price-name">Shop Name</div>
+        <div class="price-unit">shown across the system</div>
+      </div>
+      <div class="price-edit" style="flex:1;min-width:220px;">
+        <input type="text" class="price-input" id="input-shop_name" style="width:100%;min-width:180px;" placeholder="RektaPrint">
+        <button class="save-btn" id="save-shop_name" onclick="saveTextSetting('shop_name')">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">Service Prices</div>
+  <div class="panel" id="servicesPanel"></div>
+
+  <div class="add-service-card">
+    <div class="add-service-title">+ Add New Service</div>
+    <div class="add-service-row">
+      <input type="text" id="newServiceName" placeholder="Service name (e.g. Bookbinding)" style="flex:2;">
+      <input type="number" id="newServicePrice" placeholder="Price per page" min="0" step="0.5" style="flex:1;">
+      <select id="newServiceCategory" style="flex:1;padding:0.55rem 0.8rem;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:var(--mono);font-size:0.82rem;">
+        <option value="Printing">Printing</option>
+        <option value="Photocopy">Photocopy</option>
+        <option value="Scanning">Scanning</option>
+        <option value="Laminating">Laminating</option>
+        <option value="Other">Other</option>
+      </select>
+      <label class="promo-checkbox">
+        <input type="checkbox" id="newServiceIsPromo">
+        Piso Print promo
+      </label>
+      <button class="add-service-btn" onclick="submitNewService()">Add</button>
+    </div>
+  </div>
+
+  <div class="section-title">Wastage Cost Setup (cost per package ÷ pieces per package)</div>
+  <div class="panel" id="inventoryCostPanel"></div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  async function loadServices() {
+    const resp = await fetch('/api/services');
+    const services = await resp.json();
+    renderServices(services);
+  }
+
+  function renderServices(services) {
+    const panel = document.getElementById('servicesPanel');
+    panel.innerHTML = services.map(s => `
+      <div class="price-row">
+        <div class="price-info">
+          <div class="price-name">${s.name}${s.is_promo ? '<span class="promo-badge">PISO PRINT</span>' : ''}</div>
+          <div class="price-unit">per ${s.unit}</div>
+        </div>
+        <div class="price-edit">
+          <input type="number" class="price-input" id="price-${s.id}" value="${s.price.toFixed(2)}" min="0" step="0.5">
+          <button class="save-btn" id="save-btn-${s.id}" onclick="saveServicePrice(${s.id})">Save</button>
+          <button class="delete-service-btn" onclick="deleteServiceConfirm(${s.id}, '${s.name.replace(/'/g, "\\'")}')" title="Delete service">🗑</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  async function submitNewService() {
+    const name = document.getElementById('newServiceName').value.trim();
+    const price = parseFloat(document.getElementById('newServicePrice').value);
+    const is_promo = document.getElementById('newServiceIsPromo').checked;
+    const category = document.getElementById('newServiceCategory').value;
+
+    if (!name) {
+      showToast('Enter a service name', true);
+      return;
+    }
+    if (isNaN(price) || price < 0) {
+      showToast('Enter a valid price', true);
+      return;
+    }
+
+    const resp = await fetch('/api/services/add', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, unit: 'page', price, is_promo, category })
+    });
+    const data = await resp.json();
+
+    if (data.error) {
+      showToast(data.error, true);
+      return;
+    }
+
+    document.getElementById('newServiceName').value = '';
+    document.getElementById('newServicePrice').value = '';
+    document.getElementById('newServiceIsPromo').checked = false;
+
+    showToast('Service added');
+    loadServices();
+  }
+
+  async function deleteServiceConfirm(id, name) {
+    if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
+
+    const resp = await fetch(`/api/services/${id}/delete`, { method: 'POST' });
+    const data = await resp.json();
+
+    if (data.error) {
+      showToast(data.error, true);
+      return;
+    }
+
+    showToast('Service deleted');
+    loadServices();
+  }
+
+  async function saveServicePrice(id) {
+    const price = parseFloat(document.getElementById(`price-${id}`).value);
+    if (isNaN(price) || price < 0) {
+      showToast('Enter a valid price', true);
+      return;
+    }
+
+    const resp = await fetch(`/api/services/${id}/price`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ price })
+    });
+    const data = await resp.json();
+
+    if (data.error) {
+      showToast(data.error, true);
+      return;
+    }
+
+    const btn = document.getElementById(`save-btn-${id}`);
+    btn.textContent = 'Saved ✓';
+    btn.classList.add('saved');
+    setTimeout(() => {
+      btn.textContent = 'Save';
+      btn.classList.remove('saved');
+    }, 1500);
+
+    showToast('Price updated');
+  }
+
+  async function loadInventoryCosts() {
+    const resp = await fetch('/api/inventory');
+    const items = await resp.json();
+    renderInventoryCosts(items);
+  }
+
+  function renderInventoryCosts(items) {
+    const panel = document.getElementById('inventoryCostPanel');
+    panel.innerHTML = items.map(item => {
+      const piecesPerUnit = item.pieces_per_unit || 1;
+      const pieceLabel = item.piece_label || 'pc';
+      const costPerPiece = piecesPerUnit > 0 ? (item.unit_cost || 0) / piecesPerUnit : 0;
+
+      return `
+      <div class="price-row" style="flex-wrap:wrap;align-items:flex-start;">
+        <div class="price-info" style="min-width:140px;">
+          <div class="price-name">${item.name}</div>
+          <div class="price-unit">package = ${item.unit}</div>
+        </div>
+
+        <div class="price-edit" style="flex-direction:column;align-items:flex-end;gap:0.5rem;">
+          <div style="display:flex;align-items:center;gap:0.4rem;">
+            <span style="font-family:var(--mono);font-size:0.68rem;color:var(--muted);width:90px;text-align:right;">Cost per ${item.unit}</span>
+            <input type="number" class="price-input" id="cost-${item.id}" value="${(item.unit_cost || 0).toFixed(2)}" min="0" step="0.5" oninput="updateComputedCost(${item.id})">
+          </div>
+          <div style="display:flex;align-items:center;gap:0.4rem;">
+            <span style="font-family:var(--mono);font-size:0.68rem;color:var(--muted);width:90px;text-align:right;">Pieces per ${item.unit}</span>
+            <input type="number" class="price-input" id="pieces-${item.id}" value="${piecesPerUnit}" min="0.01" step="1" oninput="updateComputedCost(${item.id})">
+          </div>
+          <div style="display:flex;align-items:center;gap:0.4rem;">
+            <span style="font-family:var(--mono);font-size:0.68rem;color:var(--muted);width:90px;text-align:right;">Piece label</span>
+            <input type="text" class="price-input" id="label-${item.id}" value="${pieceLabel}" placeholder="sheet, ml, pc">
+          </div>
+          <div style="font-family:var(--mono);font-size:0.72rem;color:var(--green);" id="computed-${item.id}">
+            ≈ ₱${costPerPiece.toFixed(4)} per ${pieceLabel}
+          </div>
+          <button class="save-btn" id="save-cost-btn-${item.id}" onclick="savePackaging(${item.id})">Save</button>
+        </div>
+      </div>
+    `}).join('');
+  }
+
+  function updateComputedCost(id) {
+    const cost = parseFloat(document.getElementById(`cost-${id}`).value) || 0;
+    const pieces = parseFloat(document.getElementById(`pieces-${id}`).value) || 1;
+    const label = document.getElementById(`label-${id}`).value || 'pc';
+    const perPiece = pieces > 0 ? cost / pieces : 0;
+    document.getElementById(`computed-${id}`).textContent = `≈ ₱${perPiece.toFixed(4)} per ${label}`;
+  }
+
+  async function savePackaging(id) {
+    const unit_cost = parseFloat(document.getElementById(`cost-${id}`).value);
+    const pieces_per_unit = parseFloat(document.getElementById(`pieces-${id}`).value);
+    const piece_label = document.getElementById(`label-${id}`).value.trim() || 'pc';
+
+    if (isNaN(unit_cost) || unit_cost < 0) {
+      showToast('Enter a valid cost', true);
+      return;
+    }
+    if (isNaN(pieces_per_unit) || pieces_per_unit <= 0) {
+      showToast('Pieces per unit must be greater than 0', true);
+      return;
+    }
+
+    const costResp = await fetch(`/api/inventory/${id}/unit-cost`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ unit_cost })
+    });
+    const costData = await costResp.json();
+    if (costData.error) { showToast(costData.error, true); return; }
+
+    const pkgResp = await fetch(`/api/inventory/${id}/packaging`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pieces_per_unit, piece_label })
+    });
+    const pkgData = await pkgResp.json();
+    if (pkgData.error) { showToast(pkgData.error, true); return; }
+
+    const btn = document.getElementById(`save-cost-btn-${id}`);
+    btn.textContent = 'Saved ✓';
+    btn.classList.add('saved');
+    setTimeout(() => {
+      btn.textContent = 'Save';
+      btn.classList.remove('saved');
+    }, 1500);
+
+    showToast('Packaging & cost updated');
+  }
+
+  function showToast(msg, isError = false) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.style.borderLeftColor = isError ? 'var(--accent)' : 'var(--green)';
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+
+  // ── Printer Settings ──────────────────────────────────────────
+  let printerList = [];
+  let currentSettings = {};
+  let dirtyPrinters = {};
+
+  async function loadPrinterSettings() {
+    try {
+      // Load current saved settings
+      const settingsResp = await fetch('/api/settings');
+      currentSettings = await settingsResp.json();
+
+      // Load available printers from Windows
+      const printersResp = await fetch('/api/printers');
+      printerList = await printersResp.json();
+
+      populatePrinterDropdown('printer_bw',      currentSettings.printer_bw);
+      populatePrinterDropdown('printer_colored',  currentSettings.printer_colored);
+
+      // Fill in text fields
+      const sumatraInput = document.getElementById('input-sumatra_path');
+      const shopInput    = document.getElementById('input-shop_name');
+      if (sumatraInput) sumatraInput.value = currentSettings.sumatra_path || '';
+      if (shopInput)    shopInput.value    = currentSettings.shop_name    || '';
+
+    } catch (e) {
+      console.error('Failed to load printer settings:', e);
+      showToast('Could not load printer list', true);
+    }
+  }
+
+  function populatePrinterDropdown(key, currentValue) {
+    const select = document.getElementById('select-' + key);
+    const input  = document.getElementById('input-' + key);
+    if (!select) return;
+
+    select.innerHTML = '';
+
+    const blank = document.createElement('option');
+    blank.value = '';
+    blank.textContent = printerList.length === 0
+      ? 'Could not detect printers — type name below'
+      : '— Select a printer —';
+    select.appendChild(blank);
+
+    printerList.forEach(name => {
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = name;
+      if (name === currentValue) opt.selected = true;
+      select.appendChild(opt);
+    });
+
+    // If saved value isn't in list, add it so it's visible
+    if (currentValue && !printerList.includes(currentValue)) {
+      const opt = document.createElement('option');
+      opt.value = currentValue;
+      opt.textContent = currentValue + ' (saved)';
+      opt.selected = true;
+      select.insertBefore(opt, select.children[1]);
+    }
+
+    // Always fill the text input with the current saved value
+    if (input && currentValue) input.value = currentValue;
+  }
+
+  function syncPrinterInput(key) {
+    const select = document.getElementById('select-' + key);
+    const input  = document.getElementById('input-' + key);
+    if (select && input && select.value) {
+      input.value = select.value;
+    }
+  }
+
+  async function savePrinterSetting(key) {
+    // Use the text input value — it's always in sync with the dropdown
+    const input = document.getElementById('input-' + key);
+    const value = input ? input.value.trim() : '';
+
+    if (!value) {
+      showToast('Select a printer from the list or type the name manually', true);
+      return;
+    }
+
+    const resp = await fetch('/api/settings/update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key, value })
+    });
+
+    let data;
+    try {
+      data = await resp.json();
+    } catch {
+      showToast('Server error — are you still logged in?', true);
+      return;
+    }
+
+    if (data.error) {
+      showToast(data.error, true);
+      return;
+    }
+
+    currentSettings[key] = value;
+    markSaved('save-' + key);
+    showToast('Printer saved — takes effect on next print job');
+  }
+
+  async function saveTextSetting(key) {
+    const input = document.getElementById('input-' + key);
+    const value = input ? input.value.trim() : '';
+
+    if (!value) {
+      showToast('Value cannot be empty', true);
+      return;
+    }
+
+    const resp = await fetch('/api/settings/update', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ key, value })
+    });
+
+    let data;
+    try {
+      data = await resp.json();
+    } catch {
+      showToast('Server error — are you still logged in?', true);
+      return;
+    }
+
+    if (data.error) {
+      showToast(data.error, true);
+      return;
+    }
+
+    currentSettings[key] = value;
+    markSaved('save-' + key);
+    showToast('Setting saved');
+  }
+
+  function markSaved(btnId) {
+    const btn = document.getElementById(btnId);
+    if (!btn) return;
+    btn.textContent = 'Saved ✓';
+    btn.classList.add('saved');
+    setTimeout(() => {
+      btn.textContent = 'Save';
+      btn.classList.remove('saved');
+    }, 1500);
+  }
+
+  loadServices();
+  loadInventoryCosts();
+  loadPrinterSettings();
+</script>
+</body>
+</html>

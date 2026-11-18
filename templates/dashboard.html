@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RektaPrint – Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --surface2: #222222;
+    --border: #2e2e2e;
+    --text: #f0ebe0;
+    --muted: #888;
+    --accent: #e84f2b;
+    --blue: #2b6be8;
+    --green: #1faa5e;
+    --yellow: #f5a623;
+    --mono: 'DM Mono', monospace;
+    --sans: 'Syne', sans-serif;
+  }
+
+  body { font-family: var(--sans); background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1rem 1.8rem; border-bottom: 1px solid var(--border);
+    background: var(--surface); flex-wrap: wrap; gap: 0.6rem;
+  }
+
+  .logo { font-size: 1.3rem; font-weight: 800; letter-spacing: -0.04em; display: flex; align-items: center; gap: 0.5rem; }
+  .logo-dot { width: 10px; height: 10px; background: var(--accent); border-radius: 50%; }
+  .nav-links { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+
+  .nav-link {
+    font-family: var(--mono); font-size: 0.72rem; padding: 0.45rem 0.9rem;
+    border-radius: 6px; border: 1px solid var(--border); color: var(--muted);
+    text-decoration: none; transition: all 0.15s;
+  }
+  .nav-link:hover, .nav-link.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+
+  main { padding: 1.8rem; max-width: 1100px; margin: 0 auto; }
+
+  .page-title { font-size: 1.3rem; font-weight: 800; margin-bottom: 1.3rem; display: flex; align-items: center; gap: 0.8rem; }
+  .live-dot { width: 8px; height: 8px; background: var(--green); border-radius: 50%; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .stat-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.2rem;
+  }
+
+  .stat-label { font-family: var(--mono); font-size: 0.63rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.5rem; }
+  .stat-value { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1; }
+  .stat-value.green  { color: var(--green); }
+  .stat-value.blue   { color: var(--blue); }
+  .stat-value.red    { color: #ff7070; }
+  .stat-value.orange { color: var(--yellow); }
+  .stat-value.accent { color: var(--accent); }
+
+  .content-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
+
+  .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+
+  .panel-header {
+    padding: 0.9rem 1.2rem;
+    font-weight: 700;
+    font-size: 0.85rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface2);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .panel-body { padding: 0; }
+
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    font-family: var(--mono); font-size: 0.62rem; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--muted); padding: 0.7rem 1.1rem;
+    text-align: left; background: var(--surface2); border-bottom: 1px solid var(--border);
+  }
+  td { padding: 0.8rem 1.1rem; font-size: 0.82rem; border-bottom: 1px solid var(--border); }
+  tr:last-child td { border-bottom: none; }
+  .amount { font-family: var(--mono); font-weight: 700; color: var(--green); }
+
+  .empty-state { padding: 2rem; text-align: center; color: var(--muted); font-family: var(--mono); font-size: 0.75rem; }
+
+  .low-stock-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.8rem 1.1rem; border-bottom: 1px solid var(--border);
+  }
+  .low-stock-item:last-child { border-bottom: none; }
+  .low-stock-name { font-weight: 700; font-size: 0.85rem; }
+  .low-stock-unit { font-family: var(--mono); font-size: 0.7rem; color: var(--muted); }
+
+  .stock-badge {
+    font-family: var(--mono); font-size: 0.6rem; font-weight: 700;
+    color: #ff7070; background: rgba(255,80,80,0.12);
+    padding: 0.2rem 0.5rem; border-radius: 6px;
+  }
+
+  .receipt-link {
+    font-family: var(--mono); font-size: 0.65rem;
+    color: var(--blue); text-decoration: none;
+    padding: 0.2rem 0.5rem; border: 1px solid rgba(43,107,232,0.3);
+    border-radius: 4px;
+  }
+  .receipt-link:hover { background: var(--blue); color: white; }
+
+  @media (max-width: 900px) {
+    .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .content-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><span class="logo-dot"></span>RektaPrint</div>
+  <div class="nav-links">
+    <a href="/admin" class="nav-link">Print Queue</a>
+    <a href="/pos" class="nav-link">POS</a>
+    <a href="/dashboard" class="nav-link active">Dashboard</a>
+    <a href="/inventory" class="nav-link">Inventory</a>
+    <a href="/expenses" class="nav-link">Expenses</a>
+    <a href="/wastage" class="nav-link">Wastage</a>
+    <a href="/settings" class="nav-link">Settings</a>
+    <a href="/logout" class="nav-link">Logout</a>
+  </div>
+</header>
+
+<main>
+  <div class="page-title">
+    <span>Dashboard</span>
+    <span class="live-dot"></span>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Today's Sales</div>
+      <div class="stat-value green" id="todaySales">₱0.00</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Monthly Sales</div>
+      <div class="stat-value blue" id="monthSales">₱0.00</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Expenses (Month)</div>
+      <div class="stat-value red" id="monthExpenses">₱0.00</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Wastage (Month)</div>
+      <div class="stat-value red" id="monthWastage">₱0.00</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Net Profit (Month)</div>
+      <div class="stat-value orange" id="netProfit">₱0.00</div>
+    </div>
+  </div>
+
+  <div class="content-grid">
+    <div class="panel">
+      <div class="panel-header">
+        <span>Recent Transactions</span>
+        <a href="/pos" class="receipt-link">+ New Sale</a>
+      </div>
+      <div class="panel-body" id="recentTransactions">
+        <div class="empty-state">Loading...</div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header">
+        <span>Low Stock Alerts</span>
+        <a href="/inventory" class="receipt-link">View Inventory</a>
+      </div>
+      <div class="panel-body" id="lowStockList">
+        <div class="empty-state">Loading...</div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<script>
+  async function loadDashboard() {
+    try {
+      const resp = await fetch('/api/dashboard');
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      const data = await resp.json();
+
+      if (data.error) {
+        console.error('Dashboard error:', data.error);
+        return;
+      }
+
+      document.getElementById('todaySales').textContent    = `₱${(data.today_sales    || 0).toFixed(2)}`;
+      document.getElementById('monthSales').textContent    = `₱${(data.month_sales    || 0).toFixed(2)}`;
+      document.getElementById('monthExpenses').textContent = `₱${(data.month_expenses || 0).toFixed(2)}`;
+      document.getElementById('monthWastage').textContent  = `₱${(data.month_reject_cost || 0).toFixed(2)}`;
+      document.getElementById('netProfit').textContent     = `₱${(data.net_profit     || 0).toFixed(2)}`;
+
+      renderRecentTransactions(data.recent_transactions || []);
+      renderLowStock(data.low_stock_items || []);
+    } catch (e) {
+      console.error('Dashboard load error:', e);
+    }
+  }
+
+  function renderRecentTransactions(transactions) {
+    const container = document.getElementById('recentTransactions');
+    if (!transactions.length) {
+      container.innerHTML = `<div class="empty-state">No transactions yet.</div>`;
+      return;
+    }
+
+    container.innerHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Items</th>
+            <th>Total</th>
+            <th>Receipt</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${transactions.map(t => `
+            <tr>
+              <td style="font-family:var(--mono);font-size:0.75rem;color:var(--muted);">
+                ${(t.created_at || '').slice(0, 16)}
+              </td>
+              <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">
+                ${t.items_summary || '-'}
+              </td>
+              <td class="amount">₱${(t.total || 0).toFixed(2)}</td>
+              <td><a href="/receipt/${t.id}" target="_blank" class="receipt-link">Print</a></td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  }
+
+  function renderLowStock(items) {
+    const container = document.getElementById('lowStockList');
+    if (!items.length) {
+      container.innerHTML = `<div class="empty-state">All stock levels are healthy ✅</div>`;
+      return;
+    }
+
+    container.innerHTML = items.map(item => `
+      <div class="low-stock-item">
+        <div>
+          <div class="low-stock-name">${item.name}</div>
+          <div class="low-stock-unit">${item.remaining_stock} ${item.unit} remaining</div>
+        </div>
+        <span class="stock-badge">LOW</span>
+      </div>
+    `).join('');
+  }
+
+  loadDashboard();
+  setInterval(loadDashboard, 10000);
+</script>
+</body>
+</html>
